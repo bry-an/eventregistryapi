@@ -1,28 +1,42 @@
-const { EventRegistry, RequestArticlesRecentActivity, QueryArticles, sleep } = require('eventregistry')
+const { EventRegistry, ReturnInfo, ArticleInfoFlags, LocationInfoFlags, RequestArticlesRecentActivity, QueryArticles, sleep } = require('eventregistry')
 lodash = require('lodash')
-const er = new EventRegistry({apiKey: 'e042cdf5-6a54-45c6-88cf-4ab5a974d503'})
+const er = new EventRegistry({ apiKey: 'e042cdf5-6a54-45c6-88cf-4ab5a974d503' })
 
-// er.getLocationUri('United States').then(res => console.log(res))
+const articleInfoFlags  = new ArticleInfoFlags({
+    location: true,
+})
 
-// console.log(er.getLocationUri('United States'))
+const locationInfoFlags = new LocationInfoFlags({
+    geoLocation:  true,
+})
+
+const returnInfo = new ReturnInfo({
+    articleInfo: articleInfoFlags,
+    locationInfo: locationInfoFlags  
+})
+
+
 
 async function fetchfilteredUpdates() {
-    const query = new QueryArticles({sourceLocationUri: await er.getLocationUri("United States")});
+    const query = new QueryArticles({ sourceLocationUri:  await er.getLocationUri("United States"), returnInfo:  returnInfo });
     query.setRequestedResult(
         new RequestArticlesRecentActivity({
             // download at most 2000 articles. if less of matching articles were added in last 10 minutes, less will be returned
             maxArticleCount: 10,
             // consider articles that were published at most 10 minutes ago
             updatesAfterMinsAgo: 10,
+            returnInfo: returnInfo,
+            mandatorySourceLocation: true
         })
-    );
-    const articleList = await er.execQuery(query);
+    )
+    const articleList = await er.execQuery(query, returnInfo);
+    // console.log('query', query, 'returninfo', returnInfo, 'articleinfo', articleInfoFlags)
     // TODO: do here whatever you need to with the articleList
 
     for (const article of lodash.get(articleList, "recentActivityArticles.activity", [])) {
-        console.info(`Whole Object ${JSON.stringify(article.location)}`);
+        console.info(`Whole Object ${JSON.stringify(article, null, 2)}`);
     }
     // wait exactly a minute until next batch of new content is ready
     await sleep(60 * 1000);
 }
-    fetchfilteredUpdates();
+fetchfilteredUpdates();
