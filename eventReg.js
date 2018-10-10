@@ -22,9 +22,9 @@ async function fetchfilteredUpdates() {
     query.setRequestedResult(
         new RequestArticlesRecentActivity({
             // download at most 2000 articles. if less of matching articles were added in last 10 minutes, less will be returned
-            maxArticleCount: 10,
+            maxArticleCount: 1000,
             // consider articles that were published at most 10 minutes ago
-            updatesAfterMinsAgo: 10,
+            updatesAfterMinsAgo: 1140,
             returnInfo: returnInfo,
             mandatorySourceLocation: true
         })
@@ -34,7 +34,11 @@ async function fetchfilteredUpdates() {
     // TODO: do here whatever you need to with the articleList
 
     for (const article of lodash.get(articleList, "recentActivityArticles.activity", [])) {
-        console.info(`Whole Object ${JSON.stringify(article, null, 2)}`);
+        // console.info('whole article', article)
+        if (article.location) {
+            console.info(`latitude ${JSON.stringify(article.location.lat, null, 2)}
+            longitude ${JSON.stringify(article.location.long)}`);
+        }
     }
     // wait exactly a minute until next batch of new content is ready
     await sleep(60 * 1000);
