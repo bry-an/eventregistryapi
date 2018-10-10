@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "eventregistry": "^8.5.12",
+    "file-system": "^2.2.2",
     "lodash": "^4.17.11"
   }
 }
