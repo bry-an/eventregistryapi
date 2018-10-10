@@ -1,3 +1,7 @@
+const mongoose = require('mongoose')
+mongoose.connect('mongodb+srv://bry:weioWEIO8*@cluster0-ovni5.mongodb.net/project3')
+const Article = require('./models/article')
+
 const {
   EventRegistry,
   ReturnInfo,
@@ -34,6 +38,7 @@ async function fetchfilteredUpdates() {
     sourceLocationUri: await er.getLocationUri("United States"),
     returnInfo: returnInfo
   });
+
   query.setRequestedResult(
     new RequestArticlesRecentActivity({
       // download at most 2000 articles. if less of matching articles were added in last 10 minutes, less will be returned
@@ -44,31 +49,41 @@ async function fetchfilteredUpdates() {
       mandatorySourceLocation: true
     })
   );
+  
   const articleList = await er.execQuery(query, returnInfo);
-  // console.log('query', query, 'returninfo', returnInfo, 'articleinfo', articleInfoFlags)
-  // TODO: do here whatever you need to with the articleList
 
   let array = [];
   var count = 0;
-  for (const article of lodash.get(
-    articleList,
-    "recentActivityArticles.activity",
-    []
-  )) {
+
+  //set up database connection
+  const savedArticle = new Article()
+
+
+  for (const article of lodash.get(articleList, "recentActivityArticles.activity",[])) {
+    if (article.location) {
+    savedArticle.title = JSON.stringify(article.title)
+    savedArticle.body = JSON.stringify(article.body)
+    savedArticle.date = JSON.stringify(article.date)
+    savedArticle.location = JSON.stringify(article.location)
+    savedArticle.lat = parseInt(JSON.stringify(article.location.lat))
+    savedArticle.lng = parseInt(JSON.stringify(article.location.long))
+    
+    savedArticle.save(err => {
+      if (err) console.log(err)
+    })
+
     array.push(JSON.stringify(article));
     // console.info('whole article', article)
-    // if (article.location) {
     count++;
     //     const string = JSON.stringify(article)
 
     // console.info(`latitude ${JSON.stringify(article.location.lat, null, 2)}
-    // longitude ${JSON.stringify(article.location.long)}`);
-    // }
   }
-  fs.appendFile("./1009-2323.json", array, err => {
-    if (err) throw err;
-    console.log(count);
-  });
+  }
+  // fs.appendFile("./1009-2323.json", array, err => {
+  //   if (err) throw err;
+  //   console.log(count);
+  // });
   // wait exactly a minute until next batch of new content is ready
   await sleep(60 * 1000);
 }
