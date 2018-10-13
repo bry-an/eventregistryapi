@@ -43,12 +43,14 @@ async function fetchfilteredUpdates() {
       // download at most 2000 articles. if less of matching articles were added in last 10 minutes, less will be returned
       maxArticleCount: 1000,
       // consider articles that were published at most 10 minutes ago
-      updatesAfterMinsAgo: 10000,
+      updatesAfterMinsAgo: 1440,
       returnInfo: returnInfo,
       mandatorySourceLocation: true
     })
   );
 
+  const requests = er.getRemainingAvailableRequests()
+  console.log('requests remaining', requests)
   const articleList = await er.execQuery(query, returnInfo);
 
   var count = 0;
@@ -58,15 +60,16 @@ async function fetchfilteredUpdates() {
 
   for (const article of lodash.get(articleList, "recentActivityArticles.activity", [])) {
     if (article.location) {
+      // console.log('whole article', JSON.stringify(article))
       console.log('++++++++++NEW ARTICLE+++++++++++++')
       const savedArticle = new Article()
 
       savedArticle.title = JSON.stringify(article.title)
       savedArticle.body = JSON.stringify(article.body)
-      savedArticle.date = JSON.stringify(article.date)
+      savedArticle.date = new Date(article.dateTime).toISOString()
       savedArticle.location = JSON.stringify(article.location.label.eng)
-      savedArticle.lat = parseInt(JSON.stringify(article.location.lat))
-      savedArticle.lng = parseInt(JSON.stringify(article.location.long))
+      savedArticle.lat = parseFloat(JSON.stringify(article.location.lat))
+      savedArticle.lng = parseFloat(JSON.stringify(article.location.long))
 
       // articleObj = {
       //   title: JSON.stringify(article.title),

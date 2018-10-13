@@ -7,8 +7,8 @@ const ArticleSchema = new Schema({
     body: String,
     date: Date,
     location: String, 
-    lat: Number,
-    lng: Number
+    lat: Schema.Types.Decimal128,
+    lng: Schema.Types.Decimal128,
 })
 
 module.exports = mongoose.model('Article', ArticleSchema)
